@@ -1,6 +1,6 @@
-package cmd
+package util
 
-var fileExtension = map[string]string{
+var FileExtension = map[string]string{
 	"c++":    ".cpp",
 	"golang": ".go",
 	"go":     ".go",

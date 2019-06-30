@@ -21,6 +21,8 @@ import (
 	"path"
 	"strconv"
 
+	"github.com/kowshikRoy/cft/util"
+	"github.com/kowshikRoy/cft/model"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -34,11 +36,11 @@ var initCmd = &cobra.Command{
 		if err != nil {
 			fmt.Errorf("%v", err)
 		}
-		createDir(ContestDir(contestID))
-		createDir(TestDir(contestID))
+		util.CreateDir(ContestDir(contestID))
+		util.CreateDir(TestDir(contestID))
 
-		standings := Standings{}
-		if err := crawl(contestID, &standings); err != nil {
+		standings := model.Standings{}
+		if err := util.Crawl(contestID, &standings); err != nil {
 			return err
 		}
 		if err := setupFiles(contestID, &standings.Result); err != nil {
@@ -65,11 +67,11 @@ func TestDir(contestID int) string {
 	return testDir
 
 }
-func fetchTestCase(contestID int, problems *[]Problems) error {
+func fetchTestCase(contestID int, problems *[]model.Problems) error {
 	c := make(chan bool)
 	testDir := TestDir(contestID)
 	for _, p := range *problems {
-		go crawlTest(c, testDir, p.Index, "https://codeforces.com/contest/"+strconv.Itoa(contestID)+"/problem/"+p.Index)
+		go util.CrawlTest(c, testDir, p.Index, "https://codeforces.com/contest/"+strconv.Itoa(contestID)+"/problem/"+p.Index)
 	}
 	for range *problems {
 		<-c
@@ -77,7 +79,7 @@ func fetchTestCase(contestID int, problems *[]Problems) error {
 	return nil
 }
 
-func setupFiles(contestID int, r *Result) error {
+func setupFiles(contestID int, r *model.Result) error {
 	contestDir := ContestDir(contestID)
 	tpl := []byte{}
 	if viper.IsSet("templateFile") {
@@ -88,7 +90,7 @@ func setupFiles(contestID int, r *Result) error {
 		tpl = temp
 	}
 	for _, problem := range r.Problems {
-		ext := fileExtension[viper.GetString("lang")]
+		ext := util.FileExtension[viper.GetString("lang")]
 		if err := ioutil.WriteFile(path.Join(contestDir, problem.Index+ext), tpl, 0755); err != nil {
 			fmt.Errorf("Couldn't write the source file: %v", err)
 		}

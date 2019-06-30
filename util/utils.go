@@ -1,4 +1,4 @@
-package cmd
+package util
 
 import (
 	"encoding/json"
@@ -11,16 +11,17 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/kowshikRoy/cft/model"
 )
 
-func createDir(path string) error {
+func CreateDir(path string) error {
 	if err := os.MkdirAll(path, 0755); err != nil {
 		return fmt.Errorf("Couldn't create directory: %v", err)
 	}
 	return nil
 }
 
-func crawl(contestID int, standings *Standings) error {
+func Crawl(contestID int, standings *model.Standings) error {
 	url := "https://codeforces.com/api/contest.standings?from=1&count=1&contestId=" + strconv.Itoa(contestID)
 	res, err := http.Get(url)
 	if err != nil {
@@ -39,7 +40,7 @@ func crawl(contestID int, standings *Standings) error {
 	return nil
 }
 
-func crawlTest(c chan bool, testDir, index, url string) {
+func CrawlTest(c chan bool, testDir, index, url string) {
 
 	res, err := http.Get(url)
 	if err != nil || res.StatusCode != http.StatusOK {
@@ -48,7 +49,7 @@ func crawlTest(c chan bool, testDir, index, url string) {
 	defer res.Body.Close()
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	folder := path.Join(testDir, index)
-	createDir(folder)
+	CreateDir(folder)
 	doc.Find(".sample-test .input pre").Each(func(i int, s *goquery.Selection) {
 		temp, _ := s.Html()
 		text := strings.ReplaceAll(temp, "<br/>", "\n")

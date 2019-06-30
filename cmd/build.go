@@ -16,8 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -28,11 +26,12 @@ var buildCmd = &cobra.Command{
 	Long: `Builds your source code to binary executable
 	It uses codeforces build options and puts the binary in bin folder`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("build called")
+
 	},
 }
 
 func init() {
+	buildCmd.Flags().Bool("all", false, "compiles all the source code in the repo")
 	rootCmd.AddCommand(buildCmd)
 
 	// Here you will define your flags and configuration settings.

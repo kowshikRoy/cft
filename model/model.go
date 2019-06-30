@@ -1,4 +1,4 @@
-package cmd
+package model
 
 type Standings struct {
 	Status  string `json:"status"`
