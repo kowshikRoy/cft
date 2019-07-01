@@ -34,7 +34,8 @@ var setCmd = &cobra.Command{
 
 	PROPERTY_VALUE is the new value you wish to set.
 	`,
-	Example: `# Set the user of the account
+	Example: `
+	# Set the user of the account
 	cft config set user tourist
 
 	# Set the directory for the codeforces contest

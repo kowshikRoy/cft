@@ -21,24 +21,28 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/kowshikRoy/cft/util"
 	"github.com/kowshikRoy/cft/model"
+	"github.com/kowshikRoy/cft/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "initializes your contest",
+	Use:     "init",
+	Short:   "initializes your contest",
+	Args:    cobra.ExactArgs(1),
+	Aliases: []string{"int"},
+	Example: `
+    # initialize your dev environment for contest-id 1000
+    cft init 1000
+	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		contestID, err := cmd.Flags().GetInt("id")
+		contestID, err := strconv.Atoi(args[0])
 		if err != nil {
-			fmt.Errorf("%v", err)
+			return fmt.Errorf("Not a valid contest id: %v", err)
 		}
-		util.CreateDir(ContestDir(contestID))
-		util.CreateDir(TestDir(contestID))
-
+		contestDir, testDir, _ := util.CreateDev(contestID)
 		standings := model.Standings{}
 		if err := util.Crawl(contestID, &standings); err != nil {
 			return err
@@ -46,30 +50,16 @@ var initCmd = &cobra.Command{
 		if err := setupFiles(contestID, &standings.Result); err != nil {
 			return err
 		}
-		if err := fetchTestCase(contestID, &standings.Result.Problems); err != nil {
+		if err := fetchTestCase(contestID, testDir, &standings.Result.Problems); err != nil {
 			return err
 		}
-
+		fmt.Println("Your contest environment is ready on :", contestDir, "\nHappy Coding !!")
 		return nil
-
 	},
 }
 
-func ContestDir(contestID int) string {
-	woringDir := viper.GetString("workdir")
-	contestDir := path.Join(woringDir, strconv.Itoa(contestID))
-	return contestDir
-}
-
-func TestDir(contestID int) string {
-	contestDir := ContestDir(contestID)
-	testDir := path.Join(contestDir, "tests")
-	return testDir
-
-}
-func fetchTestCase(contestID int, problems *[]model.Problems) error {
+func fetchTestCase(contestID int, testDir string, problems *[]model.Problems) error {
 	c := make(chan bool)
-	testDir := TestDir(contestID)
 	for _, p := range *problems {
 		go util.CrawlTest(c, testDir, p.Index, "https://codeforces.com/contest/"+strconv.Itoa(contestID)+"/problem/"+p.Index)
 	}
@@ -80,7 +70,7 @@ func fetchTestCase(contestID int, problems *[]model.Problems) error {
 }
 
 func setupFiles(contestID int, r *model.Result) error {
-	contestDir := ContestDir(contestID)
+	contestDir := util.ContestDir(contestID)
 	tpl := []byte{}
 	if viper.IsSet("templateFile") {
 		temp, err := ioutil.ReadFile(viper.GetString("templateFile"))
@@ -90,9 +80,9 @@ func setupFiles(contestID int, r *model.Result) error {
 		tpl = temp
 	}
 	for _, problem := range r.Problems {
-		ext := util.FileExtension[viper.GetString("lang")]
+		ext := util.GetSourceFileExtension(viper.GetString("lang"))
 		if err := ioutil.WriteFile(path.Join(contestDir, problem.Index+ext), tpl, 0755); err != nil {
-			fmt.Errorf("Couldn't write the source file: %v", err)
+			return fmt.Errorf("Couldn't write the source file: %v", err)
 		}
 	}
 
@@ -100,8 +90,6 @@ func setupFiles(contestID int, r *model.Result) error {
 }
 
 func init() {
-	initCmd.Flags().Int("id", 0, "contest id (https://codeforces.com/contest/<contest id>")
-	initCmd.MarkFlagRequired("id")
 	rootCmd.AddCommand(initCmd)
 
 	// Here you will define your flags and configuration settings.

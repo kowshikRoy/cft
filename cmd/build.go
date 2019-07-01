@@ -16,22 +16,38 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/kowshikRoy/cft/util"
+
 	"github.com/spf13/cobra"
 )
 
 // buildCmd represents the build command
 var buildCmd = &cobra.Command{
-	Use:   "build",
-	Short: "builds your source code to binary executable",
+	Use:     "build",
+	Aliases: []string{"b", "bld"},
+	Short:   "builds your source code to binary executable",
 	Long: `Builds your source code to binary executable
 	It uses codeforces build options and puts the binary in bin folder`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		dir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("Build directory not found: %v", err)
+		}
 
+		lang, err := cmd.Flags().GetString("language")
+		util.BuildFile(dir, args[0], lang)
+		return nil
 	},
 }
 
 func init() {
-	buildCmd.Flags().Bool("all", false, "compiles all the source code in the repo")
+	buildCmd.Flags().StringP("language", "l", "c++", "specify the language to be used to build")
+	//buildCmd.Flags().Bool("all", false, "compiles all the source code in the repo")
+
 	rootCmd.AddCommand(buildCmd)
 
 	// Here you will define your flags and configuration settings.

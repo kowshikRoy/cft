@@ -77,6 +77,7 @@ func init() {
 	viper.SetDefault("user", "xxxx")
 	viper.SetDefault("workdir", path.Join(home, "code", "codeforces"))
 	viper.SetDefault("lang", "c++")
+	viper.SetDefault("margin", 1e-6)
 
 }
 
