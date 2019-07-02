@@ -42,9 +42,9 @@ var runCmd = &cobra.Command{
 			return fmt.Errorf("Build directory not found: %v", err)
 		}
 
-		lang, err := cmd.Flags().GetString("lang")
+		lang, err := cmd.Flags().GetString("language")
 		if err != nil {
-			lang = viper.GetString("lang")
+			lang = viper.GetString("language")
 		}
 		util.BuildFile(dir, args[0], lang)
 
@@ -60,7 +60,7 @@ var runCmd = &cobra.Command{
 }
 
 func init() {
-	runCmd.Flags().StringP("lang", "l", "c++", "specify the language to be used to build")
+	runCmd.Flags().StringP("language", "l", "c++", "specify the language to be used to build")
 	runCmd.Flags().IntP("time", "t", 5, "Time limit for execution (default 5)")
 	rootCmd.AddCommand(runCmd)
 

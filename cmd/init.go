@@ -80,7 +80,7 @@ func setupFiles(contestID int, r *model.Result) error {
 		tpl = temp
 	}
 	for _, problem := range r.Problems {
-		ext := util.GetSourceFileExtension(viper.GetString("lang"))
+		ext := util.GetSourceFileExtension(viper.GetString("language"))
 		if err := ioutil.WriteFile(path.Join(contestDir, problem.Index+ext), tpl, 0755); err != nil {
 			return fmt.Errorf("Couldn't write the source file: %v", err)
 		}

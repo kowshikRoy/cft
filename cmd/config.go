@@ -32,7 +32,7 @@ var configCmd = &cobra.Command{
 	`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-
+		viewCmd.Run(cmd, args)
 	},
 }
 
