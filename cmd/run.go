@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kowshikRoy/cft/model"
+
 	"github.com/spf13/viper"
 
 	"github.com/kowshikRoy/cft/util"
@@ -39,12 +41,18 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("Build directory not found: %v", err)
 		}
+
 		lang, err := cmd.Flags().GetString("lang")
 		if err != nil {
 			lang = viper.GetString("lang")
 		}
 		util.BuildFile(dir, args[0], lang)
-		util.RunTest(dir, args[0], lang)
+
+		timeLimit, err := cmd.Flags().GetInt("time")
+		if err != nil {
+			timeLimit = viper.GetInt("time")
+		}
+		util.RunTest(dir, args[0], model.ExecParam{lang, timeLimit})
 
 		return nil
 
@@ -53,6 +61,7 @@ var runCmd = &cobra.Command{
 
 func init() {
 	runCmd.Flags().StringP("lang", "l", "c++", "specify the language to be used to build")
+	runCmd.Flags().IntP("time", "t", 5, "Time limit for execution (default 5)")
 	rootCmd.AddCommand(runCmd)
 
 	// Here you will define your flags and configuration settings.

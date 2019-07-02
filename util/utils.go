@@ -163,8 +163,7 @@ func cmp(t1, t2 []byte) bool {
 	}
 	return true
 }
-func run(binFile, inFile, outFile string) {
-
+func run(c chan string, binFile, inFile, outFile string) {
 	bytes, err := ioutil.ReadFile(inFile)
 	if err != nil {
 		log.Fatal(err)
@@ -185,34 +184,40 @@ func run(binFile, inFile, outFile string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Printf("Time taken: %s ", fc.CyanString(time.Since(beg).String()))
+	result := ""
+	result += fmt.Sprintf("Time taken: %s ", fc.HiMagentaString(time.Since(beg).String()))
 	outf, err := ioutil.ReadFile(outFile)
 	if err != nil {
 		log.Fatalf("Couldn't read %s: %v", outFile, err)
 	}
 	ok := cmp(out, outf)
 	if ok {
-		fmt.Println("Status:", fc.GreenString("OK"))
+		result += fmt.Sprintln("Status:", fc.GreenString("OK"))
 	} else {
-		fmt.Println("Status:", fc.HiRedString("WA"))
-		fmt.Println(fc.YellowString("Your Output:"))
-		fmt.Println(fc.HiBlackString(string(out)))
-		fmt.Println(fc.HiBlueString("Expected Answer:"))
-		fmt.Println(fc.HiMagentaString(string(outf)))
+		result += fmt.Sprintln("Status:", fc.HiRedString("WA"))
+		result += fmt.Sprintln(fc.YellowString("Your Output:"))
+		result += fmt.Sprintln(fc.HiBlackString(string(out)))
+		result += fmt.Sprintln(fc.HiBlueString("Expected Answer:"))
+		result += fmt.Sprintln(fc.HiMagentaString(string(outf)))
+	}
+	c <- result
+
+}
+
+func runSingleTest(ctx context.Context, binFile, inFile, outFile string) {
+	c := make(chan string)
+	beg := time.Now()
+	go run(c, binFile, inFile, outFile)
+	select {
+	case <-ctx.Done():
+		fmt.Println("Time Elapsed:", fc.CyanString(time.Since(beg).String()), "Status:", fc.HiRedString("TLE"))
+	case out := <-c:
+		fmt.Print(out)
 	}
 }
 
-// func runSingleTest(ctx context.Context, binFile, inFile, outFile string) {
-// 	select {
-// 	case <-ctx.Done():
-// 		fmt.Println(ctx.Err())
-// 	case c := <-run(binFile, inFile, outFile):
-// 		fmt.Println("Time Taken: %v", c)
-// 	}
-// }
-
-func RunTest(contestDir, problem, lang string) error {
-	lang = santize(lang)
+func RunTest(contestDir, problem string, param model.ExecParam) error {
+	lang := santize(param.Lang)
 	l, ok := Mapping[lang]
 	if !ok {
 		fmt.Println("Your language is not supported or you configured language options incorrectly")
@@ -224,10 +229,9 @@ func RunTest(contestDir, problem, lang string) error {
 	for _, f := range files {
 		if strings.HasPrefix(f.Name(), "input") {
 			ctx := context.Background()
-			ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+			ctx, cancel := context.WithTimeout(ctx, time.Duration(param.TimeLimit)*time.Second)
 			defer cancel()
-
-			run(
+			runSingleTest(ctx,
 				binFile,
 				path.Join(testFileDir, f.Name()),
 				path.Join(testFileDir, strings.ReplaceAll(f.Name(), "input", "output")))
