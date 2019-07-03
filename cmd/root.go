@@ -22,9 +22,9 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
-	"path"
 
 	"github.com/spf13/cobra"
 
@@ -70,15 +70,11 @@ func init() {
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	viper.SetDefault("user", "xxxx")
-	viper.SetDefault("workdir", path.Join(home, "code", "codeforces"))
-	viper.SetDefault("language", "c++")
-	viper.SetDefault("margin", 1e-6)
-
 }
 
 //initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	LoadDefaultConfig()
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -91,25 +87,44 @@ func initConfig() {
 		// Search config in home directory with name ".cft" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".cft")
-		viper.SetConfigType("yaml")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
-
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println(viper.AllSettings())
-	} else {
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println(err)
 		fmt.Println("Couldn't read config file, either not found or misconfiguration")
 		os.Exit(1)
-		// fmt.Println(err)
-		// p, err := homedir.Dir()
-		// configFile := path.Join(p, ".cft.yaml")
-		// _, err = os.Create(configFile)
-		// if err != nil {
-		// 	fmt.Println(err)
-		// 	os.Exit(1)
-		// }
-		// viper.SetConfigFile(configFile)
+	}
+}
+
+func LoadDefaultConfig() {
+	viper.SetConfigType("yaml") // or viper.SetConfigType("YAML")
+	var yamlExample = []byte(`
+user: tourist
+author: Gennady Korotkevich
+language: c++
+workdir: /Users/reponroy/Desktop/code/codeforces
+margin: 1e-6
+templates:
+  c++: /Users/reponroy/Desktop/code/templates/cpptemplate.cpp
+  python: /Users/reponroy/Desktop/code/templates/pytemplate.py
+buildConfig:
+  c++:
+    compiler:
+      windows: g++.exe
+      darwin: g++
+      linux: g++
+    extension: .cpp
+    buildFlags: -static -DONLINE_JUDGE -lm -s -x c++ -Wl,--stack=268435456 -O2 -std=c++11 -D__USE_MINGW_ANSI_STDIO=0 
+    outputFileExtension:
+      windows: .exe
+      darwin: 
+      linux: 
+`)
+	err := viper.ReadConfig(bytes.NewBuffer(yamlExample))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

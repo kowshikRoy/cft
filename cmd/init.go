@@ -71,9 +71,10 @@ func fetchTestCase(contestID int, testDir string, problems *[]model.Problems) er
 
 func setupFiles(contestID int, r *model.Result) error {
 	contestDir := util.ContestDir(contestID)
+	lang := viper.GetString("language")
 	tpl := []byte{}
-	if viper.IsSet("templateFile") {
-		temp, err := ioutil.ReadFile(viper.GetString("templateFile"))
+	if viper.IsSet("templates") {
+		temp, err := ioutil.ReadFile(viper.GetString("templates." + lang))
 		if err != nil {
 			return fmt.Errorf("Couldn't read template file: %v", err)
 		}

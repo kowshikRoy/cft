@@ -129,7 +129,7 @@ func BuildFile(contestDir, problem, lang string) error {
 		fmt.Println(string(out))
 		os.Exit(1)
 	}
-	fmt.Println("Compiled Successfully!!")
+	fmt.Println(fc.GreenString("Compiled Successfully!!"))
 	return nil
 }
 
@@ -184,7 +184,7 @@ func run(c chan string, binFile, inFile, outFile string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	result := ""
+	result := "-----------------------------------\n"
 	result += fmt.Sprintf("Time taken: %s ", fc.HiMagentaString(time.Since(beg).String()))
 	outf, err := ioutil.ReadFile(outFile)
 	if err != nil {
