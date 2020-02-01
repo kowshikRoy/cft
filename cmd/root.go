@@ -93,22 +93,14 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println(err)
-		fmt.Println("Couldn't read config file, either not found or misconfiguration")
-		os.Exit(1)
+		fmt.Println("Couldn't read config file, either not found or misconfiguration, using default one")
 	}
 }
 
 func LoadDefaultConfig() {
 	viper.SetConfigType("yaml") // or viper.SetConfigType("YAML")
 	var yamlExample = []byte(`
-user: tourist
-author: Gennady Korotkevich
 language: c++
-workdir: /Users/reponroy/Desktop/code/codeforces
-margin: 1e-6
-templates:
-  c++: /Users/reponroy/Desktop/code/templates/cpptemplate.cpp
-  python: /Users/reponroy/Desktop/code/templates/pytemplate.py
 buildConfig:
   c++:
     compiler:
