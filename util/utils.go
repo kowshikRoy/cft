@@ -19,6 +19,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	fc "github.com/fatih/color"
 	"github.com/kowshikRoy/cft/model"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
@@ -115,15 +116,24 @@ func santize(lang string) string {
 
 func BuildFile(contestDir, problem, lang string) error {
 	lang = santize(lang)
-	l, ok := Mapping[lang]
+	temp := viper.GetStringMap("buildConfig")
+	lo, ok := temp[lang]
 	if !ok {
 		fmt.Println("Your language is not supported or you configured language options incorrectly")
+		os.Exit(1)
+	}
+	var l model.Language
+	if mapstructure.Decode(lo, &l) != nil {
+		fmt.Println("Couldn't parse your language buildconfig")
 		os.Exit(1)
 	}
 
 	buildString := path.Join(contestDir, problem+l.Extension)
 	outputFile := path.Join(contestDir, "bin", problem+l.OutputFileExtension[runtime.GOOS])
-	buildC := exec.Command(l.Compiler[runtime.GOOS], buildString, "-o", outputFile)
+	args := strings.Split(l.BuildFlags, " ")
+	args = append(args, buildString, "-o", outputFile)
+
+	buildC := exec.Command(l.Compiler[runtime.GOOS], args...)
 	out, err := buildC.CombinedOutput()
 	if err != nil {
 		fmt.Println(string(out))
