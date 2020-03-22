@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"os/exec"
@@ -151,7 +152,7 @@ func cmpFunc(a, b string) bool {
 	err := viper.GetFloat64("margin")
 	A, e1 := strconv.ParseFloat(a, 64)
 	B, e2 := strconv.ParseFloat(b, 64)
-	if e1 == nil && e2 == nil && (B-A)/B < err {
+	if e1 == nil && e2 == nil && math.Abs(B-A)/math.Abs(B) < err {
 		return true
 	}
 	return false
